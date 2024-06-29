@@ -54,3 +54,33 @@ jobs:
         
     - name: Output Artifact URL
       run:  echo 'Artifact URL is ${{ steps.upload.outputs.artifact-url }}'
+
+    - name: Create Release
+      uses: actions/create-release@latest
+      env:
+        GITHUB_TOKEN: ${{ github.token }} 
+      with:
+        draft: false
+        prerelease: false
+        release_name: ${{ steps.version.outputs.version }}
+        tag_name: ${{ github.run_number }}
+        body: ${{ github.event.head_commit.message }}
+
+    - name: Zipping up Release folder
+      run: 7z a release.zip "${{ github.workspace }}\PKHeX.WinForms\bin\Release\net8.0-windows\win-x64\publish\*"
+      
+    - name: test
+      run: ls -R
+            
+    - name: Upload Release
+      uses: softprops/action-gh-release@v2
+      with:
+        draft: false
+        prerelease: false    
+        tag_name: ${{ github.run_number }}
+        body: ${{ github.event.head_commit.message }}
+        files: ${{ github.workspace }}\release.zip
+      env:
+        GITHUB_TOKEN: ${{ github.token }} 
+        
+        
