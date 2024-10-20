@@ -94,6 +94,10 @@ public partial class SAV_Encounters : Form
         WinFormsUtil.TranslateInterface(this, Main.CurrentLanguage);
         GetTypeFilters();
 
+        var settings = new TabPage { Text = "Settings" };
+        settings.Controls.Add(new PropertyGrid { Dock = DockStyle.Fill, SelectedObject = Main.Settings.EncounterDb });
+        TC_SearchOptions.Controls.Add(settings);
+
         // Load Data
         L_Count.Text = "Ready...";
 
@@ -187,7 +191,7 @@ public partial class SAV_Encounters : Form
         var set = new ShowdownSet(editor);
         var criteria = EncounterCriteria.GetCriteria(set, editor.PersonalInfo);
         if (!isInChain)
-            criteria = criteria with { Gender = default }; // Genderless tabs and a gendered enc -> let's play safe.
+            criteria = criteria with { Gender = Gender.Random }; // Genderless tabs and a gendered enc -> let's play safe.
         return criteria;
     }
 

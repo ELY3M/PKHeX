@@ -157,7 +157,7 @@ public sealed class StartupSettings : IStartupSettings
 
     // Don't let invalid values slip into the startup version.
     private GameVersion _defaultSaveVersion = PKX.Version;
-    private string _language = GameLanguage.DefaultLanguage;
+    private string _language = WinFormsUtil.GetCultureLanguage();
 
     [Browsable(false)]
     public string Language
@@ -165,8 +165,20 @@ public sealed class StartupSettings : IStartupSettings
         get => _language;
         set
         {
-            if (GameLanguage.GetLanguageIndex(value) == -1)
+            if (!GameLanguage.IsLanguageValid(value))
+            {
+                // Migrate old language codes set in earlier versions.
+                switch (value)
+                {
+                    case "zh":
+                        _language = "zh-Hans";
+                        break;
+                    case "zh2":
+                        _language = "zh-Hant";
+                        break;
+                }
                 return;
+            }
             _language = value;
         }
     }
@@ -312,8 +324,11 @@ public sealed class HoverSettings
     [LocalizedDescription("Show PKM Slot Preview on Hover")]
     public bool HoverSlotShowPreview { get; set; } = true;
 
-    [LocalizedDescription("Show Encounter Info in on Hover")]
+    [LocalizedDescription("Show Encounter Info on Hover")]
     public bool HoverSlotShowEncounter { get; set; } = true;
+
+    [LocalizedDescription("Show all Encounter Info properties on Hover")]
+    public bool HoverSlotShowEncounterVerbose { get; set; }
 
     [LocalizedDescription("Show PKM Slot ToolTip on Hover")]
     public bool HoverSlotShowText { get; set; } = true;
@@ -369,6 +384,9 @@ public sealed class DisplaySettings
 
     [LocalizedDescription("Don't show the Legality popup if Legal!")]
     public bool IgnoreLegalPopup { get; set; }
+
+    [LocalizedDescription("Display all properties of the encounter (auto-generated) when exporting a verbose report.")]
+    public bool ExportLegalityVerboseProperties { get; set; }
 
     [LocalizedDescription("Flag Illegal Slots in Save File")]
     public bool FlagIllegal { get; set; } = true;

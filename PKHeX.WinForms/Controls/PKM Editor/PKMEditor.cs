@@ -1828,22 +1828,25 @@ public sealed partial class PKMEditor : UserControl, IMainEditor
         if (pk is IRibbonSetAffixed a)
         {
             var affixed = a.AffixedRibbon;
-            if (affixed != -1)
+            if (affixed != AffixedRibbon.None)
             {
                 PB_Affixed.Image = RibbonSpriteUtil.GetRibbonSprite((RibbonIndex)affixed);
                 PB_Affixed.Visible = true;
                 // Update the tooltip with the ribbon name.
-                var name = RibbonStrings.GetName($"Ribbon{(RibbonIndex)affixed}");
+                var name = RibbonStrings.GetNameSafe($"Ribbon{(RibbonIndex)affixed}", out var result) ? result : affixed.ToString();
+                if (pk is IRibbonSetMarks { RibbonMarkCount: > 1 } y)
+                    name += Environment.NewLine + GetRibbonAffixCount(y);
                 AffixedTip.SetToolTip(PB_Affixed, name);
                 return;
             }
-            if (pk is IRibbonSetMarks { RibbonMarkCount: not 0 })
+            if (pk is IRibbonSetMarks { RibbonMarkCount: not 0 } x)
             {
                 PB_Affixed.Image = Properties.Resources.ribbon_affix_none;
                 PB_Affixed.Visible = true;
-                AffixedTip.SetToolTip(PB_Affixed, "Ribbons / Marks available to affix.");
+                AffixedTip.SetToolTip(PB_Affixed, GetRibbonAffixCount(x));
                 return;
             }
+            static string GetRibbonAffixCount(IRibbonSetMarks x) => $"{x.RibbonMarkCount} available to affix.";
         }
         PB_Affixed.Visible = false;
     }
@@ -2229,7 +2232,11 @@ public sealed partial class PKMEditor : UserControl, IMainEditor
         var context = Entity.Context;
         var langPk = (LanguageID)WinFormsUtil.GetIndex(CB_Language);
         var langSav = (LanguageID)RequestSaveFile.Language;
-        BTN_NicknameWarn.Visible = StringFontUtil.HasUndefinedCharacters(TB_Nickname.Text, context, langPk, langSav);
+
+        // Gen 7 unnicknamed Chinese Pokémon will always be valid after remapping
+        var isUnnicknamedChinese = Entity is PK7 && (SpeciesName.GetSpeciesNameLanguage(Entity.Species, (int)langPk, TB_Nickname.Text, 7) is (int)LanguageID.ChineseS or (int)LanguageID.ChineseT);
+
+        BTN_NicknameWarn.Visible = !isUnnicknamedChinese && StringFontUtil.HasUndefinedCharacters(TB_Nickname.Text, context, langPk, langSav);
         BTN_OTNameWarn.Visible = StringFontUtil.HasUndefinedCharacters(TB_OT.Text, context, langPk, langSav);
 
         static bool IsFontDocumented(PKM pk)

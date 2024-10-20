@@ -49,6 +49,10 @@ public enum PogoType : byte
     ResearchNH,
 
     /// <summary> Pokémon captured after completing Field Research. </summary>
+    /// <remarks> Unlike standard Field Research encounters, these are lowered to Level 10. </remarks>
+    Research10,
+
+    /// <summary> Pokémon captured after completing Field Research. </summary>
     /// <remarks> Unlike standard Field Research encounters, these are boosted to Level 20. </remarks>
     Research20,
 
@@ -66,6 +70,11 @@ public enum PogoType : byte
     /// <summary> Pokémon captured after defeating members of Team GO Rocket. Must be Purified before transferring to Pokémon HOME. </summary>
     /// <remarks> Pokémon with this <see cref="PogoType"/> can not be moved to <see cref="GameVersion.GG"/>. </remarks>
     Shadow = 50,
+
+    /// <summary> Pokémon captured after completing Max Battles. </summary>
+    MaxBattle = 60,
+    /// <summary> Mythical Pokémon captured after completing Max Battles. </summary>
+    MaxBattleM,
 
     /// <summary> Pokémon captured from Special Research or Timed Research with a Premier Ball. </summary>
     /// <remarks>
@@ -101,12 +110,15 @@ public static class PogoTypeExtensions
         PogoType.ResearchUB => 15,
         PogoType.ResearchMH => 15,
         PogoType.ResearchNH => 15,
+        PogoType.Research10 => 10,
         PogoType.Research20 => 20,
         PogoType.ResearchUB20 => 20,
         PogoType.GBL => 20,
         PogoType.GBLM => 20,
         PogoType.GBLD => 20,
         PogoType.Shadow => 8,
+        PogoType.MaxBattle => 20,
+        PogoType.MaxBattleM => 20,
         PogoType.Research269 => 15,
         PogoType.Research269M => 15,
         _ => 1, // Wild, Egg
@@ -126,6 +138,7 @@ public static class PogoTypeExtensions
         PogoType.ResearchMH => 10,
         PogoType.GBLM => 10,
         PogoType.GBLD => 0,
+        PogoType.MaxBattleM => 10,
         PogoType.Research269M => 10,
         _ => 1,
     };
@@ -151,8 +164,9 @@ public static class PogoTypeExtensions
     /// <returns>True if valid, false if invalid.</returns>
     public static bool IsMasterBallUsable(this PogoType encounterType) => encounterType switch
     {
-        PogoType.Egg or PogoType.EggS  => false,
+        PogoType.Egg or PogoType.EggS => false,
         PogoType.ResearchMP or PogoType.ResearchUB or PogoType.ResearchMH or PogoType.ResearchNH or PogoType.ResearchUB20 => false,
+        PogoType.MaxBattle or PogoType.MaxBattleM => false,
         _ => true,
     };
 
@@ -173,6 +187,8 @@ public static class PogoTypeExtensions
         PogoType.ResearchUB => Ball.Beast,
         PogoType.ResearchUB20 => Ball.Beast,
         PogoType.Shadow => Ball.Premier,
+        PogoType.MaxBattle => Ball.Premier,
+        PogoType.MaxBattleM => Ball.Premier,
         PogoType.Research269 => Ball.Premier,
         PogoType.Research269M => Ball.Premier,
         _ => Ball.None, // Poke, Great, Ultra

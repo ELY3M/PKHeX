@@ -609,7 +609,7 @@ public partial class SAVEditor : UserControl, ISlotViewer<PictureBox>, ISaveFile
     private void B_CellsStickers_Click(object sender, EventArgs e) => OpenDialog(new SAV_ZygardeCell((SAV7)SAV));
     private void B_LinkInfo_Click(object sender, EventArgs e) => OpenDialog(new SAV_Link6(SAV));
     private void B_OpenApricorn_Click(object sender, EventArgs e) => OpenDialog(new SAV_Apricorn((SAV4HGSS)SAV));
-    private void B_CGearSkin_Click(object sender, EventArgs e) => OpenDialog(new SAV_CGearSkin((SAV5)SAV));
+    private void B_CGearSkin_Click(object sender, EventArgs e) => OpenDialog(new SAV_DLC5((SAV5)SAV));
     private void B_OpenTrainerInfo_Click(object sender, EventArgs e) => OpenDialog(GetTrainerEditor(SAV));
     private void B_OpenOPowers_Click(object sender, EventArgs e) => OpenDialog(new SAV_OPower((ISaveBlock6Main)SAV));
     private void B_OpenHoneyTreeEditor_Click(object sender, EventArgs e) => OpenDialog(new SAV_HoneyTree((SAV4Sinnoh)SAV));
@@ -690,9 +690,14 @@ public partial class SAVEditor : UserControl, ISlotViewer<PictureBox>, ISaveFile
         {
             var form = WinFormsUtil.FirstFormOfType<SAV_GroupViewer>();
             if (form != null)
+            {
                 form.CenterToForm(ParentForm);
+            }
             else
-                form = new SAV_GroupViewer(sav, M.Env.PKMEditor, g) { TopMost = true };
+            {
+                form = new SAV_GroupViewer(sav, M.Env.PKMEditor, g);
+                form.Owner = ParentForm;
+            }
             form.BringToFront();
             form.Show();
         }
@@ -774,6 +779,7 @@ public partial class SAVEditor : UserControl, ISlotViewer<PictureBox>, ISaveFile
     {
         using var form = SAV switch
         {
+            SAV2 sav2 => new SAV_Misc2(sav2),
             SAV3 sav3 => new SAV_Misc3(sav3),
             SAV4 sav4 => new SAV_Misc4(sav4),
             SAV5 sav5 => new SAV_Misc5(sav5),
@@ -1217,7 +1223,7 @@ public partial class SAVEditor : UserControl, ISlotViewer<PictureBox>, ISaveFile
 
         B_OtherSlots.Visible = sav is SAV1StadiumJ or SAV1Stadium or SAV2Stadium;
         B_OpenTrainerInfo.Visible = B_OpenItemPouch.Visible = (sav.HasParty && SAV is not SAV4BR) || SAV is SAV7b; // Box RS & Battle Revolution
-        B_OpenMiscEditor.Visible = sav is SAV3 or SAV4 or SAV5 or SAV8BS;
+        B_OpenMiscEditor.Visible = sav is SAV2 { Version: GameVersion.C} or SAV3 or SAV4 or SAV5 or SAV8BS;
         B_Roamer.Visible = sav is SAV3 or SAV6XY;
 
         B_OpenHoneyTreeEditor.Visible = sav is SAV4Sinnoh;
@@ -1227,8 +1233,8 @@ public partial class SAVEditor : UserControl, ISlotViewer<PictureBox>, ISaveFile
         B_OpenChatterEditor.Visible = sav is SAV4 or SAV5;
         B_OpenSealStickers.Visible = B_Poffins.Visible = sav is SAV8BS;
         B_OpenApricorn.Visible = sav is SAV4HGSS;
-        B_OpenRTCEditor.Visible = sav.Generation == 2 || sav is IGen3Hoenn;
-        B_MailBox.Visible = sav is SAV2 or SAV3 or SAV4 or SAV5;
+        B_OpenRTCEditor.Visible = (sav.Generation == 2 && sav is not SAV2Stadium) || sav is IGen3Hoenn;
+        B_MailBox.Visible = sav is SAV2 or SAV2Stadium or SAV3 or SAV4 or SAV5;
 
         B_Raids.Visible = sav is SAV8SWSH or SAV9SV;
         B_RaidsSevenStar.Visible = sav is SAV9SV;

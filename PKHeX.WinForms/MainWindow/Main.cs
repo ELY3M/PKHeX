@@ -7,7 +7,6 @@ using System.IO;
 using System.Linq;
 using System.Media;
 using System.Runtime.InteropServices;
-using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
@@ -281,8 +280,20 @@ public partial class Main : Form
             WinFormsUtil.Error(MsgPluginFailLoad, c);
             return;
         }
-        foreach (var p in Plugins.OrderBy(z => z.Priority))
-            p.Initialize(C_SAV, PKME_Tabs, menuStrip1, Program.CurrentVersion);
+
+        var list = Plugins.OrderBy(z => z.Priority).ToList();
+        foreach (var p in list)
+        {
+            try
+            {
+                p.Initialize(C_SAV, PKME_Tabs, menuStrip1, Program.CurrentVersion);
+            }
+            catch (Exception ex)
+            {
+                WinFormsUtil.Error(MsgPluginFailLoad, ex);
+                Plugins.Remove(p);
+            }
+        }
     }
 
     // Main Menu Strip UI Functions
@@ -998,13 +1009,11 @@ public partial class Main : Form
     {
         var index = CB_MainLanguage.SelectedIndex;
         if ((uint)index < CB_MainLanguage.Items.Count)
-            CurrentLanguage = GameLanguage.Language2Char(index);
+            CurrentLanguage = GameLanguage.LanguageCode(index);
 
-        // Set the culture (makes it easy to pass language to other forms)
         var lang = CurrentLanguage;
         Settings.Startup.Language = lang;
-        var ci = new CultureInfo(lang[..2]);
-        Thread.CurrentThread.CurrentCulture = Thread.CurrentThread.CurrentUICulture = ci;
+        WinFormsUtil.SetCultureLanguage(lang);
 
         Menu_Options.DropDown.Close();
 
@@ -1129,10 +1138,8 @@ public partial class Main : Form
             var dr = WinFormsUtil.Prompt(MessageBoxButtons.YesNo, report, MsgClipboardLegalityExport);
             if (dr != DialogResult.Yes)
                 return;
-#if DEBUG
-            var enc = la.EncounterOriginal.GetTextLines();
+            var enc = la.EncounterOriginal.GetTextLines(Settings.Display.ExportLegalityVerboseProperties);
             report += Environment.NewLine + Environment.NewLine + string.Join(Environment.NewLine, enc);
-#endif
             WinFormsUtil.SetClipboardText(report);
         }
         else if (Settings.Display.IgnoreLegalPopup && la.Valid)
