@@ -40,7 +40,7 @@ jobs:
     - name: Show Github infos
       run: | 
        echo 'Workspace path ${{ github.workspace }} - runner.temp ${{ runner.temp }}'
-       dir ${{ github.workspace }}\PKHeX.Core\bin\Release\
+       dir ${{ github.workspace }}\PKHeX.Core\bin\Release\net8.0\
      
     - name: Create Release
       uses: actions/create-release@latest
