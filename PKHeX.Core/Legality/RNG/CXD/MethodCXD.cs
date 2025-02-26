@@ -96,6 +96,41 @@ public static class MethodCXD
     // Repeat above
 
     /// <summary>
+    /// Get the first possible starting seed that generates the given trainer ID and secret ID.
+    /// </summary>
+    /// <param name="tid">Generation 3 Trainer ID</param>
+    /// <param name="sid">Generation 3 Secret ID</param>
+    /// <param name="seed">Possible starting seed</param>
+    /// <returns>True if a seed was found, false if no seed was found</returns>
+    public static bool TryGetSeedTrainerID(ushort tid, ushort sid, out uint seed)
+    {
+        Span<uint> seeds = stackalloc uint[XDRNG.MaxCountSeedsPID];
+        var count = XDRNG.GetSeeds(seeds, (uint)tid << 16, (uint)sid << 16);
+
+        if (count == 0)
+        {
+            seed = 0;
+            return false;
+        }
+        seed = seeds[0];
+        return true;
+    }
+
+    public static bool TryGetShinySID(ushort tid, out ushort sid, uint xor, uint bits)
+    {
+        for (int i = 0; i < 8; i++, bits++)
+        {
+            var newSID = (ushort)(xor ^ (bits & 7));
+            if (!TryGetSeedTrainerID(tid, newSID, out _))
+                continue;
+            sid = newSID;
+            return true;
+        }
+        sid = 0;
+        return false;
+    }
+
+    /// <summary>
     /// Tries to set a valid PID/IV for the requested criteria for a Colosseum starter (Umbreon and Espeon), preferring to match Trainer IDs.
     /// </summary>
     public static bool SetStarterFromTrainerID(CK3 pk, EncounterCriteria criteria, ushort tid, ushort sid)

@@ -14,6 +14,7 @@ public static class GenerateMethodH
         var gr = pi.Gender;
         var (min, max) = SlotMethodH.GetRange(enc.Type, enc.SlotNumber);
         bool checkProc = MethodH.IsEncounterCheckApplicable(enc.Type);
+        bool checkLevel = criteria.IsSpecifiedLevelRange() && enc.IsLevelWithinRange(criteria);
 
         // Generate Method H correlated PID and IVs, no lead (keep things simple).
         while (true)
@@ -57,7 +58,7 @@ public static class GenerateMethodH
 
                 {
                     var level = (byte)MethodH.GetRandomLevel(enc, lv, LeadRequired.None);
-                    if (criteria.IsSpecifiedLevelRange() && !criteria.IsSatisfiedLevelRange(level))
+                    if (checkLevel && !criteria.IsSatisfiedLevelRange(level))
                         break; // try again
                     pk.MetLevel = pk.CurrentLevel = level;
                 }
@@ -112,15 +113,14 @@ public static class GenerateMethodH
         }
     }
 
-    public static bool SetFromIVs<T>(this T enc, PK3 pk, EncounterCriteria criteria)
+    public static bool SetFromIVs<T>(this T enc, PK3 pk, PersonalInfo3 pi, EncounterCriteria criteria, bool emerald)
         where T : IEncounterSlot3
     {
-        var gr = pk.PersonalInfo.Gender;
+        var gr = pi.Gender;
         criteria.GetCombinedIVs(out var iv1, out var iv2);
         Span<uint> all = stackalloc uint[LCRNG.MaxCountSeedsIV];
         var count = LCRNGReversal.GetSeedsIVs(all, iv1 << 16, iv2 << 16);
         var seeds = all[..count];
-        bool emerald = pk.E;
         foreach (ref var seed in seeds)
         {
             seed = LCRNG.Prev2(seed);

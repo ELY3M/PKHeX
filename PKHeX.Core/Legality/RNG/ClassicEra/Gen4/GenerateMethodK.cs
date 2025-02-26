@@ -25,6 +25,7 @@ public static class GenerateMethodK
         bool randLevel = MethodK.IsLevelRand(enc);
         var modulo = enc.Type.IsSafari() ? 10u : 100u;
         bool checkProc = MethodK.IsEncounterCheckApplicable(enc.Type);
+        bool checkLevel = criteria.IsSpecifiedLevelRange() && enc.IsLevelWithinRange(criteria);
 
         // Generate Method K correlated PID and IVs, no lead (keep things simple).
         while (true)
@@ -61,10 +62,25 @@ public static class GenerateMethodK
                 if (criteria.IsSpecifiedGender() && !criteria.IsSatisfiedGender(gender))
                     break; // try again
 
+                if (enc.Species is (ushort)Species.Unown)
+                {
+                    if (criteria.IsSpecifiedForm())
+                    {
+                        var form = (byte)criteria.Form;
+                        if (!RuinsOfAlph4.IsFormValid(LCRNG.Prev4(seed), form))
+                            break; // try again
+                        pk.Form = form;
+                    }
+                    else
+                    {
+                        pk.Form = RuinsOfAlph4.GetEntranceForm(LCRNG.Next2(seed));
+                    }
+                }
+
                 if (randLevel)
                 {
                     var level = (byte)MethodK.GetRandomLevel(enc, lv, LeadRequired.None);
-                    if (criteria.IsSpecifiedLevelRange() && !criteria.IsSatisfiedLevelRange(level))
+                    if (checkLevel && !criteria.IsSatisfiedLevelRange(level))
                         break; // try again
                     pk.MetLevel = pk.CurrentLevel = level;
                 }
@@ -121,6 +137,21 @@ public static class GenerateMethodK
                 : MethodK.GetSeed(enc, seed);
             if (!lead.IsValid()) // Verifies the slot, (min) level, and nature loop; if it passes, apply the details.
                 continue;
+
+            if (enc.Species is (ushort)Species.Unown)
+            {
+                if (criteria.IsSpecifiedForm())
+                {
+                    var form = (byte)criteria.Form;
+                    if (!RuinsOfAlph4.IsFormValid(seed, form))
+                        continue;
+                    pk.Form = form;
+                }
+                else
+                {
+                    pk.Form = RuinsOfAlph4.GetEntranceForm(LCRNG.Next6(seed)); // ABCD|E(Item)|F(Form) determination
+                }
+            }
 
             if (MethodK.IsLevelRand(enc))
             {

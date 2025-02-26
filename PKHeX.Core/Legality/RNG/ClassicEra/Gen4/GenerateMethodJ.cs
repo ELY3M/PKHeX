@@ -24,6 +24,7 @@ public static class GenerateMethodJ
         var (min, max) = SlotMethodJ.GetRange(enc.Type, enc.SlotNumber);
         bool randLevel = MethodJ.IsLevelRand(enc);
         bool checkProc = MethodJ.IsEncounterCheckApplicable(enc.Type);
+        bool checkLevel = criteria.IsSpecifiedLevelRange() && enc.IsLevelWithinRange(criteria);
 
         // Generate Method J correlated PID and IVs, no lead (keep things simple).
         while (true)
@@ -64,10 +65,25 @@ public static class GenerateMethodJ
                 if (criteria.IsSpecifiedHiddenPower() && !criteria.IsSatisfiedHiddenPower(iv32))
                     break; // try again
 
+                if (enc.Species is (ushort)Species.Unown)
+                {
+                    if (criteria.IsSpecifiedForm())
+                    {
+                        var form = (byte)criteria.Form;
+                        if (!SolaceonRuins4.IsFormValid(LCRNG.Prev4(seed), form))
+                            break; // try again
+                        pk.Form = form;
+                    }
+                    else
+                    {
+                        pk.Form = 8; // Always 100% form as 'I' in one of the rooms. Don't need to check rand(1) choice.
+                    }
+                }
+
                 if (randLevel)
                 {
                     var level = (byte)MethodJ.GetRandomLevel(enc, lv, LeadRequired.None);
-                    if (criteria.IsSpecifiedLevelRange() && !criteria.IsSatisfiedLevelRange(level))
+                    if (checkLevel && !criteria.IsSatisfiedLevelRange(level))
                         break; // try again
                     pk.MetLevel = pk.CurrentLevel = level;
                 }
@@ -121,6 +137,21 @@ public static class GenerateMethodJ
                 : MethodJ.GetSeed(enc, seed);
             if (!lead.IsValid()) // Verifies the slot, (min) level, and nature loop; if it passes, apply the details.
                 continue;
+
+            if (enc.Species is (ushort)Species.Unown)
+            {
+                if (criteria.IsSpecifiedForm())
+                {
+                    var form = (byte)criteria.Form;
+                    if (!SolaceonRuins4.IsFormValid(seed, form))
+                        continue;
+                    pk.Form = form;
+                }
+                else
+                {
+                    pk.Form = 8; // Always 100% form as 'I' in one of the rooms. Don't need to check rand(1) choice.
+                }
+            }
 
             if (MethodJ.IsLevelRand(enc))
             {

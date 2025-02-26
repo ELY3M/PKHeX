@@ -101,6 +101,8 @@ public static class LegalityCheckStrings
     public static string LContestSheenTooLow_0 { get; set; } = "Contest Stat Sheen should be >= {0}.";
     public static string LContestSheenTooHigh_0 { get; set; } = "Contest Stat Sheen should be <= {0}.";
 
+    public static string LDateOutsideConsoleWindow { get; set; } = "Local Date is outside of console's local time window.";
+    public static string LDateTimeClockInvalid { get; set; } = "Local Time is not a valid timestamp.";
     public static string LDateOutsideDistributionWindow { get; set; } = "Met Date is outside of distribution window.";
 
     public static string LEggContest { get; set; } = "Cannot increase Contest Stats of an Egg.";
@@ -479,6 +481,8 @@ public static class LegalityCheckStrings
     public static string LTeraTypeMismatch { get; set; } = "Tera Type does not match either of the default types.";
 
     public static string LTradeNotAvailable { get; set; } = "Encounter cannot be traded to the active trainer.";
+
+    public static string LTrainerIDNoSeed { get; set; } = "Trainer ID is not obtainable from any RNG seed.";
 
     public static string LTransferBad { get; set; } = "Incorrectly transferred from previous generation.";
 
