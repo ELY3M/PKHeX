@@ -243,6 +243,8 @@ public abstract class SAV4 : SaveFile, IEventFlag37, IDaycareStorage, IDaycareRa
     protected int OFS_Record = int.MinValue;
     public Record4 Records => new(this, Data.AsMemory(OFS_Record, Record4.GetSize(this)));
 
+    protected int OFS_Groups = int.MinValue;
+    
     // Storage
     public override int PartyCount
     {
@@ -408,6 +410,10 @@ public abstract class SAV4 : SaveFile, IEventFlag37, IDaycareStorage, IDaycareRa
 
     private int DaycareEnd => DaycareOffset + (2 * DaycareSlotSize);
 
+    /// <remarks>
+    /// Egg seed is the PID assigned when the player receives the egg from the daycare.
+    /// If it is an international breed (masuda method), the game will do at most 4 attempts of checking for shiny and re-rolling via ARNG if not.
+    /// </remarks>
     uint IDaycareRandomState<uint>.Seed
     {
         get => ReadUInt32LittleEndian(General[DaycareEnd..]);
@@ -421,10 +427,11 @@ public abstract class SAV4 : SaveFile, IEventFlag37, IDaycareStorage, IDaycareRa
         get => ((IDaycareRandomState<uint>)this).Seed != 0;
         set
         {
+            IDaycareRandomState<uint> x = this;
             if (!value)
-                ((IDaycareRandomState<uint>)this).Seed = 0;
-            else if (((IDaycareRandomState<uint>)this).Seed == 0)
-                ((IDaycareRandomState<uint>)this).Seed = (uint)Util.Rand.Next(1, int.MaxValue);
+                x.Seed = 0;
+            else if (x.Seed == 0)
+                x.Seed = (uint)Util.Rand.Next(1, int.MaxValue); // Can be unsigned, but whatever. Just ensure non-zero.
         }
     }
     #endregion
@@ -634,7 +641,31 @@ public abstract class SAV4 : SaveFile, IEventFlag37, IDaycareStorage, IDaycareRa
         }
     }
 
+    public int Lottery { get => GetWork(60); set => SetWork(60, (ushort)value); }
+
+    /// <remarks>
+    /// The game stores an array of 6 groups:
+    /// [0] is the group created by the player (empty if the player has never created one)
+    /// [1] is the group the player is currently in (controls swarms, Great Marsh, Feebas etc.) Unnamed default group if the player has never joined one
+    /// [2] through [5] are groups created by other players, imported via record mixing. These are joinable via the group NPC
+    /// </remarks>
+    public Group4 GroupPlayer => GetGroup(0);
+    public Group4 GroupActive => GetGroup(1);
+    public Group4 GroupOther1 => GetGroup(2);
+    public Group4 GroupOther2 => GetGroup(3);
+    public Group4 GroupOther3 => GetGroup(4);
+    public Group4 GroupOther4 => GetGroup(5);
+
+    private Group4 GetGroup(int index)
+    {
+        const int size = Group4.SIZE;
+        var ofs = OFS_Groups + (index * size);
+        var mem = GeneralBuffer.Slice(ofs, size);
+        return new Group4(mem);
+    }
+
     public abstract int BP { get; set; }
+    public abstract uint BattleTowerSeed { get; set; }
     public abstract BattleFrontierFacility4 MaxFacility { get; }
 
     public abstract MysteryBlock4 Mystery { get; }
@@ -677,7 +708,7 @@ public sealed class MysteryBlock4DP(SAV4DP sav, Memory<byte> raw) : MysteryBlock
     public override void SetMysteryGift(int index, PCD pcd)
     {
         base.SetMysteryGift(index, pcd);
-        SetMysteryGiftReceivedSentinel(index, pcd.Empty ? 0 : MysteryGiftDPSlotActive);
+        SetMysteryGiftReceivedSentinel(MaxCountPGT + index, pcd.Empty ? 0 : MysteryGiftDPSlotActive);
     }
 }
 

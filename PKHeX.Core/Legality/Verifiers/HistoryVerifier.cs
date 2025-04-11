@@ -19,6 +19,47 @@ public sealed class HistoryVerifier : Verifier
         VerifyHTMisc(data);
     }
 
+    public static byte GetSuggestedFriendshipCurrent(PKM pk, IEncounterTemplate enc)
+    {
+        if (pk.CurrentHandler == 0)
+            return GetSuggestedFriendshipOT(pk, enc);
+        return GetSuggestedFriendshipHT(pk);
+    }
+
+    public static byte GetSuggestedFriendshipOT(PKM pk, IEncounterTemplate enc)
+    {
+        if (pk.IsEgg)
+            return enc is IHatchCycle h ? h.EggCycles : pk.PersonalInfo.HatchCycles;
+
+        if (pk.Format <= 2)
+            return GetSuggestedFriendshipByMove(pk);
+        // VC transfers use S/M personal info
+        if (enc is EncounterTransfer7 t7)
+            return PersonalTable.SM[t7.Species].BaseFriendship;
+
+        // 3+
+        bool neverOT = !GetCanOTHandle(enc, pk, enc.Generation);
+        if (neverOT)
+            return (byte)GetBaseFriendship(enc);
+        return GetSuggestedFriendshipByMove(pk);
+    }
+
+    public static byte GetSuggestedFriendshipHT(PKM pk)
+    {
+        if (pk.IsUntraded)
+            return 0;
+        return GetSuggestedFriendshipByMove(pk);
+    }
+
+    private static byte GetSuggestedFriendshipByMove(PKM pk)
+    {
+        if (pk.HasMove((ushort)Move.Return))
+            return byte.MaxValue;
+        if (pk.HasMove((ushort)Move.Frustration))
+            return 0;
+        return pk.PersonalInfo.BaseFriendship;
+    }
+
     private void VerifyTradeState(LegalityAnalysis data)
     {
         var pk = data.Entity;
@@ -63,8 +104,13 @@ public sealed class HistoryVerifier : Verifier
             byte expect = shouldBe0 ? (byte)0 : (byte)1;
             if (!IsHandlerStateCorrect(enc, pk, current, expect))
             {
-                data.AddLine(GetInvalid(LTransferCurrentHandlerInvalid));
-                return;
+                // generally disable this check if it's being edited inside a blank save file's environment.
+                if (tr is not SaveFile { State.Exportable: false })
+                    data.AddLine(GetInvalid(LTransferCurrentHandlerInvalid));
+                // if there's no HT data yet specified, don't bother checking further.
+                // blank save exports will be injected and fixed later, and not-blanks will have been flagged by the above.
+                if (pk.IsUntraded)
+                    return;
             }
 
             if (current == 1)
