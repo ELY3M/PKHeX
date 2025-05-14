@@ -6,7 +6,7 @@ using System.Diagnostics;
 namespace PKHeX.Core;
 
 /// <summary>
-/// Iterates to find potentially matched encounters for <see cref="GameVersion.BDSP"/> encounters while in the <see cref="PK8"/> format.
+/// Iterates to find potentially matched encounters for <see cref="EncounterEnumerator8b"/> encounters while in the <see cref="PK8"/> format.
 /// </summary>
 public record struct EncounterEnumerator8bSWSH(PKM Entity, EvoCriteria[] Chain, GameVersion Version) : IEnumerator<MatchedEncounter<IEncounterable>>
 {
@@ -79,7 +79,7 @@ public record struct EncounterEnumerator8bSWSH(PKM Entity, EvoCriteria[] Chain, 
                 State = YieldState.BredSplit;
                 return SetCurrent(egg);
             case YieldState.BredSplit:
-                if (!EncounterGenerator8b.TryGetSplit((EncounterEgg)Current.Encounter, Chain, out egg))
+                if (!EncounterGenerator8b.TryGetSplit((EncounterEgg8b)Current.Encounter, Chain, out egg))
                     goto case YieldState.TradeStart;
                 State = YieldState.End;
                 return SetCurrent(egg);

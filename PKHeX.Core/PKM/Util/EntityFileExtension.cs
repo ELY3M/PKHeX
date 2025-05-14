@@ -3,6 +3,9 @@ using System.Collections.Generic;
 
 namespace PKHeX.Core;
 
+/// <summary>
+/// Logic for interacting with Entity file extensions.
+/// </summary>
 public static class EntityFileExtension
 {
     // All side-game formats that don't follow the usual pk* format
@@ -26,7 +29,7 @@ public static class EntityFileExtension
     /// </summary>
     /// <param name="maxGeneration">Maximum Generation to permit</param>
     /// <returns>Valid <see cref="PKM"/> file extensions.</returns>
-    public static string[] GetExtensions(int maxGeneration = PKX.Generation)
+    public static string[] GetExtensions(int maxGeneration = Latest.Generation)
     {
         int min = maxGeneration is <= 2 or >= 7 ? 1 : 3;
         int size = maxGeneration - min + 1 + CountExtra;

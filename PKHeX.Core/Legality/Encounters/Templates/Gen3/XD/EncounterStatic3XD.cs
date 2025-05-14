@@ -1,3 +1,5 @@
+using static PKHeX.Core.RandomCorrelationRating;
+
 namespace PKHeX.Core;
 
 /// <summary>
@@ -34,7 +36,7 @@ public sealed record EncounterStatic3XD(ushort Species, byte Level)
 
     public XK3 ConvertToPKM(ITrainerInfo tr, EncounterCriteria criteria)
     {
-        int lang = (int)Language.GetSafeLanguage(Generation, (LanguageID)tr.Language);
+        int language = (int)Language.GetSafeLanguage(Generation, (LanguageID)tr.Language);
         var pi = PersonalTable.E[Species];
         var pk = new XK3
         {
@@ -48,11 +50,11 @@ public sealed record EncounterStatic3XD(ushort Species, byte Level)
             Ball = (byte)(FixedBall != Ball.None ? FixedBall : Ball.Poke),
             FatefulEncounter = FatefulEncounter,
 
-            Language = lang,
+            Language = language,
             OriginalTrainerName = tr.OT,
             OriginalTrainerGender = 0,
             ID32 = tr.ID32,
-            Nickname = SpeciesName.GetSpeciesNameGeneration(Species, lang, Generation),
+            Nickname = SpeciesName.GetSpeciesNameGeneration(Species, language, Generation),
         };
 
         SetPINGA(pk, criteria, pi);
@@ -76,13 +78,13 @@ public sealed record EncounterStatic3XD(ushort Species, byte Level)
             if (MethodCXD.SetStarterFromTrainerID(pk, criteria, pk.TID16, pk.SID16))
                 return;
             // Fall back to generating a random PID.
-            MethodCXD.SetStarterRandom(pk, criteria);
+            MethodCXD.SetStarterRandom(pk, criteria, Util.Rand32());
             return;
         }
 
         if (criteria.IsSpecifiedIVsAll() && MethodCXD.SetFromIVs(pk, criteria, pi, noShiny: false))
             return;
-        MethodCXD.SetRandom(pk, criteria, pi, noShiny: false);
+        MethodCXD.SetRandom(pk, criteria, pi, noShiny: false, Util.Rand32());
     }
     #endregion
 
@@ -138,11 +140,13 @@ public sealed record EncounterStatic3XD(ushort Species, byte Level)
     }
     #endregion
 
-    public bool IsCompatible(PIDType type, PKM pk)
+    public RandomCorrelationRating IsCompatible(PIDType type, PKM pk)
     {
         if (type is PIDType.CXD)
-            return true;
-        return type is PIDType.CXDAnti && FatefulEncounter;
+            return Match;
+        if (type is PIDType.CXDAnti && FatefulEncounter)
+            return Match;
+        return Mismatch;
     }
 
     public PIDType GetSuggestedCorrelation() => PIDType.CXD;

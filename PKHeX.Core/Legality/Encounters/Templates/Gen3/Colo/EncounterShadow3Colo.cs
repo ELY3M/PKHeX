@@ -1,4 +1,5 @@
 using System;
+using static PKHeX.Core.RandomCorrelationRating;
 
 namespace PKHeX.Core;
 
@@ -91,8 +92,10 @@ public sealed record EncounterShadow3Colo(byte Index, ushort Gauge, ReadOnlyMemo
     {
         if (criteria.IsSpecifiedIVsAll() && this.SetFromIVs(pk, criteria, pi, noShiny: false))
             return;
-        if (!this.SetRandom(pk, criteria, pi, noShiny: false))
-            this.SetRandom(pk, EncounterCriteria.Unrestricted, pi, noShiny: false);
+
+        uint seed = Util.Rand32();
+        if (!this.SetRandom(pk, criteria, pi, noShiny: false, seed))
+            this.SetRandom(pk, EncounterCriteria.Unrestricted, pi, noShiny: false, seed);
     }
 
     private void SetPINGA_EReader(CK3 pk)
@@ -178,11 +181,11 @@ public sealed record EncounterShadow3Colo(byte Index, ushort Gauge, ReadOnlyMemo
 
     #endregion
 
-    public bool IsCompatible(PIDType type, PKM pk)
+    public RandomCorrelationRating IsCompatible(PIDType type, PKM pk)
     {
         if (IsEReader)
-            return true;
-        return type is PIDType.CXD;
+            return Match;
+        return type is PIDType.CXD ? Match : Mismatch;
     }
 
     public PIDType GetSuggestedCorrelation()

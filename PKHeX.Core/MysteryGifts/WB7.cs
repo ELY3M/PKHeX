@@ -83,7 +83,7 @@ public sealed class WB7(byte[] Data)
         get
         {
             // Check to see if date is valid
-            if (!DateUtil.IsDateValid(Year, Month, Day))
+            if (!DateUtil.IsValidDate(Year, Month, Day))
                 return null;
 
             return new DateOnly((int)Year, (int)Month, (int)Day);
@@ -418,7 +418,7 @@ public sealed class WB7(byte[] Data)
             pk.CurrentHandler = 1;
         }
 
-        pk.SetMaximumPPCurrent();
+        pk.HealPP();
 
         if ((tr.Generation > Generation && OriginGame == 0) || !CanBeReceivedByVersion(pk.Version))
         {

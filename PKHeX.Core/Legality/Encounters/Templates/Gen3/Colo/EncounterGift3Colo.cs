@@ -1,4 +1,5 @@
 using System;
+using static PKHeX.Core.RandomCorrelationRating;
 
 namespace PKHeX.Core;
 
@@ -93,13 +94,15 @@ public sealed record EncounterGift3Colo : IEncounterable, IEncounterMatch, IEnco
             criteria = criteria with { Shiny = Shiny.Never }; // ensure no bad inputs
         if (criteria.IsSpecifiedIVsAll() && MethodCXD.SetFromIVs(pk, criteria, pi, noShiny: true))
             return;
-        MethodCXD.SetRandom(pk, criteria, pi, noShiny: true);
+        MethodCXD.SetRandom(pk, criteria, pi, noShiny: true, Util.Rand32());
     }
     #endregion
 
     #region Matching
     public bool IsMatchExact(PKM pk, EvoCriteria evo)
     {
+        if (pk.Version != Version)
+            return false;
         if (!IsMatchEggLocation(pk))
             return false;
         if (!IsMatchLocation(pk))
@@ -153,7 +156,7 @@ public sealed record EncounterGift3Colo : IEncounterable, IEncounterMatch, IEnco
     }
     #endregion
 
-    public bool IsCompatible(PIDType type, PKM pk) => type is PIDType.CXD or PIDType.CXDAnti;
+    public RandomCorrelationRating IsCompatible(PIDType type, PKM pk) => type is PIDType.CXD or PIDType.CXDAnti ? Match : Mismatch;
 
     public PIDType GetSuggestedCorrelation() => PIDType.CXD;
 

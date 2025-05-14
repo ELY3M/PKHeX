@@ -132,7 +132,7 @@ public static class MoveListSuggest
     {
         if (enc is IRelearn { Relearn: { HasMoves: true } r })
             r.CopyTo(moves);
-        else if (enc is EncounterEgg or EncounterInvalid { IsEgg: true })
+        else if (enc is IEncounterEgg or EncounterInvalid { IsEgg: true })
             GetSuggestedRelearnEgg(enc, pk, moves);
     }
 
@@ -157,7 +157,7 @@ public static class MoveListSuggest
         if (LearnVerifierRelearn.ShouldNotHaveRelearnMoves(enc, pk))
             return;
 
-        if (enc is EncounterEgg or EncounterInvalid {IsEgg: true})
+        if (enc is IEncounterEgg or EncounterInvalid {IsEgg: true})
             enc.GetSuggestedRelearnEgg(info.Moves, pk, moves);
         else
             enc.GetSuggestedRelearnInternal(pk, moves);
@@ -185,7 +185,7 @@ public static class MoveListSuggest
             return;
 
         // Try again with the other split-breed species if possible.
-        var generator = EncounterGenerator.GetGenerator(enc.Version);
+        var generator = EncounterGenerator.GetGenerator(enc.Version, enc.Generation);
 
         Span<EvoCriteria> chain = stackalloc EvoCriteria[EvolutionTree.MaxEvolutions];
         var origin = new EvolutionOrigin(enc.Species, enc.Version, enc.Generation, 1, 100, OriginOptions.EncounterTemplate);

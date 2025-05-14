@@ -38,7 +38,7 @@ public partial class SAV_Database : Form
     private const int RES_MAX = GridWidth * GridHeight;
     private readonly string Counter;
     private readonly string Viewed;
-    private const int MAXFORMAT = PKX.Generation;
+    private const int MAXFORMAT = Latest.Generation;
     private readonly SummaryPreviewer ShowSet = new();
     private CancellationTokenSource cts = new();
 
@@ -110,7 +110,11 @@ public partial class SAV_Database : Form
                     return;
 
                 var pk = Results[index];
-                slot.AccessibleDescription = ShowdownParsing.GetLocalizedPreviewText(pk.Entity, Main.CurrentLanguage);
+
+                var x = Main.Settings;
+                var programLanguage = Language.GetLanguageValue(x.Startup.Language);
+                var settings = x.BattleTemplate.Hover.GetSettings(programLanguage, pk.Entity.Context);
+                slot.AccessibleDescription = ShowdownParsing.GetLocalizedPreviewText(pk.Entity, settings);
             };
         }
 
@@ -162,11 +166,22 @@ public partial class SAV_Database : Form
         if (sender == mnu)
             mnu.Hide();
 
+        var slot = Results[index];
+        var temp = slot.Entity;
+        var pk = EntityConverter.ConvertToType(temp, SAV.PKMType, out var c);
+        if (pk is null)
+        {
+            WinFormsUtil.Error(c.GetDisplayString(temp, SAV.PKMType));
+            return;
+        }
+        SAV.AdaptToSaveFile(pk);
+        pk.RefreshChecksum();
+        PKME_Tabs.PopulateFields(pk, false);
+
         slotSelected = index;
         slotColor = SpriteUtil.Spriter.View;
         FillPKXBoxes(SCR_Box.Value);
-        L_Viewed.Text = string.Format(Viewed, Results[index].Identify());
-        PKME_Tabs.PopulateFields(Results[index].Entity, false);
+        L_Viewed.Text = string.Format(Viewed, slot.Identify());
     }
 
     private void ClickDelete(object sender, EventArgs e)

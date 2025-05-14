@@ -250,7 +250,7 @@ public sealed class GameStrings : IBasicStrings
         itemlist[479] += " (HG/SS)"; // Lost Item (Dropped Item=636)
 
         // Append Z-Crystal Key Item differentiator
-        foreach (var i in ItemStorage7USUM.Pouch_ZCrystal_USUM)
+        foreach (var i in ItemStorage7USUM.ZCrystalKey)
             itemlist[i] += " [Z]";
 
         itemlist[0121] += " (1)"; // Pokémon Box Link
@@ -795,7 +795,7 @@ public sealed class GameStrings : IBasicStrings
     /// <param name="location">Location value</param>
     /// <param name="format">Current <see cref="PKM.Format"/></param>
     /// <param name="generation"><see cref="PKM.Generation"/> of origin</param>
-    /// <param name="version">Current GameVersion (only applicable for <see cref="GameVersion.Gen7b"/> differentiation)</param>
+    /// <param name="version">Version within <see cref="generation"/>, if needed to differentiate.</param>
     /// <returns>Location name. Potentially an empty string if no location name is known for that location value.</returns>
     public string GetLocationName(bool isEggLocation, ushort location, byte format, byte generation, GameVersion version)
     {
