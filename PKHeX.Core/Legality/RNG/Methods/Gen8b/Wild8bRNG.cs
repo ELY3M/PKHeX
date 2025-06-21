@@ -9,7 +9,7 @@ public static class Wild8bRNG
 {
     private const int UNSET = -1;
 
-    public static void ApplyDetails(PB8 pk, EncounterCriteria criteria,
+    public static void ApplyDetails(PB8 pk, in EncounterCriteria criteria,
         Shiny shiny = Shiny.FixedValue,
         int flawless = -1,
         AbilityPermission ability = AbilityPermission.Any12,
@@ -39,7 +39,7 @@ public static class Wild8bRNG
         }
     }
 
-    public static bool TryApplyFromSeed(PB8 pk, EncounterCriteria criteria, Shiny shiny, int flawless, XorShift128 xors, AbilityPermission ability)
+    public static bool TryApplyFromSeed(PB8 pk, in EncounterCriteria criteria, Shiny shiny, int flawless, XorShift128 xors, AbilityPermission ability)
     {
         // Encryption Constant
         pk.EncryptionConstant = xors.NextUInt();
@@ -135,9 +135,8 @@ public static class Wild8bRNG
         pk.StatNature = pk.Nature = nature;
 
         // Remainder
-        var scale = (IScaledSize)pk;
-        scale.HeightScalar = (byte)(xors.NextUInt(0x81) + xors.NextUInt(0x80));
-        scale.WeightScalar = (byte)(xors.NextUInt(0x81) + xors.NextUInt(0x80));
+        pk.HeightScalar = (byte)(xors.NextUInt(0x81) + xors.NextUInt(0x80));
+        pk.WeightScalar = (byte)(xors.NextUInt(0x81) + xors.NextUInt(0x80));
 
         // Item, don't care
         return true;

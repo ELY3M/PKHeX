@@ -135,7 +135,7 @@ public readonly record struct EncounterCriteria : IFixedNature, IFixedAbilityNum
     /// </summary>
     /// <param name="count">The minimum number of specified IVs to check for.</param>
     /// <returns>><see langword="true"/> if the number of specified IVs is at least <paramref name="count"/>; otherwise, <see langword="false"/>.</returns>
-    public bool IsSpecifiedIVs(int count) => count <= GetCountSpecifiedIVs();
+    public bool IsSpecifiedIVs(int count) => GetCountSpecifiedIVs() <= count;
 
     /// <summary>
     /// Gets the number of IVs that are specified in the criteria.
@@ -524,7 +524,7 @@ public readonly record struct EncounterCriteria : IFixedNature, IFixedAbilityNum
     }
 
     /// <inheritdoc cref="IsCompatibleIVs(ReadOnlySpan{int})"/>
-    /// <param name="iv32">The 32-bit integer representing the IVs.</param> 
+    /// <param name="iv32">The 32-bit integer representing the IVs.</param>
     public bool IsSatisfiedIVs(uint iv32)
     {
         if (!IsSatisfiedIV(IV_HP, (int)((iv32 >> 00) & 0x1F))) return false;
