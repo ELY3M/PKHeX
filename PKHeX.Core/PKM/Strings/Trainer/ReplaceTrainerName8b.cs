@@ -8,8 +8,6 @@ namespace PKHeX.Core;
 /// </summary>
 public static class ReplaceTrainerName8b
 {
-    private const EntityContext Context = EntityContext.Gen8b;
-
     /// <summary>
     /// Checks if the original name is a trigger for replacement, and if the current name is a valid replacement.
     /// </summary>
@@ -36,11 +34,11 @@ public static class ReplaceTrainerName8b
     /// otherwise, <see langword="false"/>.</returns>
     public static bool IsTrigger(ReadOnlySpan<char> name, LanguageID language)
     {
-        bool result = StringFontUtil.HasUndefinedCharacters(name, Context, language, language);
-        if (result)
-            return true;
+        var maxLength = language is Japanese or Korean or ChineseS or ChineseT ? Legal.MaxLengthTrainerAsian : Legal.MaxLengthTrainerWestern;
+        if (name.Length > maxLength)
+            return true; // Too long for Asian languages
 
-        // Skip trash byte checks since nothing is legally generated with them; they'll already be flagged via trash byte checks.
+        // Skip CheckNgWords: Numbers, whitespace, whitewords, nn::ngc -- implicitly flagged by our WordFilter. No legitimate events trigger this.
 
         return false; // OK
     }
@@ -53,6 +51,7 @@ public static class ReplaceTrainerName8b
     /// <param name="origin">Entity game version.</param>
     public static bool IsReplace(ReadOnlySpan<char> name, LanguageID language, GameVersion origin)
     {
+        // Foreign games (not from BD/SP) will use Diamond.
         var expect = origin is GameVersion.SP ? GetNamePearl(language) : GetNameDiamond(language);
         return name.SequenceEqual(expect);
     }
@@ -67,7 +66,7 @@ public static class ReplaceTrainerName8b
         Italian => "Diaman.",
         German => "Diamant.",
         Spanish => "Diamant.",
-        Korean => "다이아몬드.", // oops! 6 characters!
+        Korean => "다이아몬드.",
         ChineseS => "戴亚.",
         ChineseT => "戴亞.",
 

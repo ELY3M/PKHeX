@@ -8,8 +8,6 @@ namespace PKHeX.Core;
 /// </summary>
 public static class ReplaceTrainerName8
 {
-    private const EntityContext Context = EntityContext.Gen8;
-
     /// <summary>
     /// Checks if the original name is a trigger for replacement, and if the current name is a valid replacement.
     /// </summary>
@@ -35,11 +33,11 @@ public static class ReplaceTrainerName8
     /// otherwise, <see langword="false"/>.</returns>
     public static bool IsTrigger(ReadOnlySpan<char> name, LanguageID language)
     {
-        bool result = StringFontUtil.HasUndefinedCharacters(name, Context, language, language);
+        bool result = !IsValid(name, language);
         if (result)
             return true;
 
-        // Skip trash byte checks since nothing is legally generated with them; they'll already be flagged via trash byte checks.
+        // Skip CheckNgWords: Numbers, whitespace, whitewords, nn::ngc -- implicitly flagged by our WordFilter. No legitimate events trigger this.
 
         return false; // OK
     }
@@ -71,4 +69,63 @@ public static class ReplaceTrainerName8
 
         _ => "Sword.",
     };
+
+    /// <summary>
+    /// Checks if the character is in the CJK Unified Ideographs range (Chinese, Japanese, Korean).
+    /// </summary>
+    /// <remarks>
+    /// Range only for Common and uncommon kanji, excluding rare kanji and symbols. Likely GB2312.
+    /// </remarks>
+    private static bool IsCJK(char c)      => c is (>= (char)0x4E00 and <= (char)0x9FA0) and not (char)0x4EDD;
+
+    // General full-width character checking methods
+    private static bool IsHiragana(char c) => c is (>= (char)0x3041 and <= (char)0x3090);
+    private static bool IsKatakana(char c) => c is (>= (char)0x30A1 and <= (char)0x30FA);
+    private static bool IsKanji(char c)    => c is (>= (char)0x4E00 and <= (char)0x9FCC); // version 6.1
+    private static bool IsHangul(char c)   => c is (>= (char)0xAC00 and <= (char)0xD7A3);
+
+    /// <summary>
+    /// Checks if the entered text is a valid string for the specified language.
+    /// </summary>
+    /// <param name="name">Input string to validate.</param>
+    /// <param name="language">Entity language to validate against.</param>
+    /// <returns><see langword="true"/> if the string is valid for the specified language; otherwise, <see langword="false"/>.</returns>
+    public static bool IsValid(ReadOnlySpan<char> name, LanguageID language)
+    {
+        // Check if fullwidth is used, and if it doesn't exceed 6 chars.
+        // Japanese has a special check, disallowing CJK range (except for a symbol char).
+        if (language is Japanese)
+        {
+            foreach (var c in name)
+            {
+                if (IsCJK(c))
+                    return false;
+            }
+        }
+
+        if (IsAnyFullWidthLengthTooLong(name, out _))
+            return false;
+
+        return true;
+    }
+
+    /// <summary>
+    /// Checks if any full-width characters are entered, and if so, ensures the total length does not exceed 6 characters.
+    /// </summary>
+    /// <param name="name">Input string to validate.</param>
+    /// <param name="anyFullWidth">Indicates if any full-width characters were found in the input.</param>
+    /// <returns><see langword="true"/> if any full-width characters are found in a too-long string.</returns>
+    public static bool IsAnyFullWidthLengthTooLong(ReadOnlySpan<char> name, out bool anyFullWidth)
+    {
+        // disassembled logic scans each character, and if a full-width char has been found at any index, checks if current index > 6
+        // we already know the length, so we can just check if any full-width exists
+        anyFullWidth = false;
+        foreach (var c in name)
+        {
+            anyFullWidth = IsHiragana(c) || IsKatakana(c) || IsKanji(c) || IsHangul(c);
+            if (anyFullWidth)
+                return name.Length > Legal.MaxLengthTrainerAsian;
+        }
+        return false;
+    }
 }

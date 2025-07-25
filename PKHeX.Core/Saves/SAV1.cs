@@ -66,7 +66,8 @@ public sealed class SAV1 : SaveFile, ILangDeviantSave, IEventFlagArray, IEventWo
         if (versionOverride is not (GameVersion.RB or GameVersion.YW))
         {
             if (Starter != 0)
-                Version = Yellow ? GameVersion.YW : GameVersion.RB;
+                // Pikachu
+                Version = Starter == 0x54 ? GameVersion.YW : GameVersion.RB;
             else
                 Version = Data[Offsets.PikaFriendship] != 0 ? GameVersion.YW : GameVersion.RB;
         }
@@ -155,8 +156,16 @@ public sealed class SAV1 : SaveFile, ILangDeviantSave, IEventFlagArray, IEventWo
             var src = GetUnpackedBoxSpan(i);
 
             bool written = PokeList1.MergeSingles(src, dest, StringLength, boxSlotCount, false, boxInitialized);
-            if (written && i == current) // Ensure the current box is mirrored in the box buffer; easier than having dest be CurrentBox.
-                dest.CopyTo(Data.AsSpan(Offsets.CurrentBox));
+            if (i != current)
+                continue;
+
+            // Ensure the current box is mirrored in the box buffer; easier than having dest be CurrentBox.
+            // On the rare chance that the box is empty and was de-synchronized from the current box as empty, we need to write separately.
+            var currentBox = Data.AsSpan(Offsets.CurrentBox, boxListLength);
+            if (written) // Data is good; mirror it.
+                dest.CopyTo(currentBox);
+            else // Data was already empty/uninitialized. Try again with the current box buffer.
+                PokeList1.MergeSingles(src, currentBox, StringLength, boxSlotCount, false, boxInitialized);
         }
 
         // Write Party
@@ -297,7 +306,6 @@ public sealed class SAV1 : SaveFile, ILangDeviantSave, IEventFlagArray, IEventWo
     public Span<byte> RivalTrash { get => Data.AsSpan(Offsets.Rival, StringLength); set { if (value.Length == StringLength) value.CopyTo(Data.AsSpan(Offsets.Rival)); } }
 
     public byte RivalStarter { get => Data[Offsets.Starter - 2]; set => Data[Offsets.Starter - 2] = value; }
-    public bool Yellow => Starter == 0x54; // Pikachu
     public byte Starter { get => Data[Offsets.Starter]; set => Data[Offsets.Starter] = value; }
 
     public ref byte WramD72E => ref Data[Offsets.Starter + 0x17]; // offset relative to player starter

@@ -282,7 +282,7 @@ public abstract class SAV3 : SaveFile, ILangDeviantSave, IEventFlag37, IBoxDetai
     }
 
     private static bool IsSectorUninitialized(ReadOnlySpan<byte> sector) =>
-        sector.IndexOfAnyExcept<byte>(0, 0xFF) == -1;
+        !sector.ContainsAnyExcept<byte>(0, 0xFF);
 
     private bool IsSectorValid(int sectorIndex)
     {
@@ -698,6 +698,23 @@ public abstract class SAV3 : SaveFile, ILangDeviantSave, IEventFlag37, IBoxDetai
     }
 
     #region External Connections
+
+    public Span<byte> GiftRibbons => Large.AsSpan(ExternalEventData - 11, 11);
+
+    public void GiftRibbonsImport(ReadOnlySpan<byte> trade)
+    {
+        const int maxRibbonValue = 64;
+        var self = GiftRibbons;
+        for (int i = 0; i < GiftRibbons.Length; i++)
+        {
+            // ruby doesn't sanity check against 64, but emerald does.
+            // just do it for all games to ensure "legal" values only import.
+            if (self[i] == 0 && trade[i] != 0 && trade[i] < maxRibbonValue)
+                self[i] = trade[i];
+        }
+    }
+
+    public void GiftRibbonsClear() => GiftRibbons.Clear();
     protected abstract int ExternalEventData { get; }
     protected int ExternalEventFlags => ExternalEventData + 0x14;
 
