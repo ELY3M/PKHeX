@@ -16,6 +16,7 @@ on:
 
 env:
   # Path to the solution file relative to the root of the project.
+  SOLUTION_FILE: PKHeX.sln
   SOLUTION_FILE_PATH: ${{ github.workspace }}
 
   # Configuration type to build.
@@ -31,6 +32,12 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
+    
+    - name: Show Github Env Variables
+      run: | 
+       echo 'Workspace path ${{ github.workspace }} - runner.temp ${{ runner.temp }}'
+       echo 'SOLUTION_FILE_PATH: ${{env.SOLUTION_FILE_PATH}}'       
+       echo 'SOLUTION_FILE: ${{env.SOLUTION_FILE}}'    
 
     - name: Add MSBuild to PATH
       uses: microsoft/setup-msbuild@v1
@@ -43,13 +50,8 @@ jobs:
       working-directory: ${{env.GITHUB_WORKSPACE}}
       # Add additional options to the MSBuild command line here (like platform or verbosity level).
       # See https://docs.microsoft.com/visualstudio/msbuild/msbuild-command-line-reference
-      run: msbuild /m /p:Configuration=${{env.BUILD_CONFIGURATION}} ${{env.SOLUTION_FILE_PATH}}/PKHeX.sln /t:Publish
-      
-    - name: Show Github infos
-      run: | 
-       echo 'Workspace path ${{ github.workspace }} - runner.temp ${{ runner.temp }}'
-       echo 'github workspace: ${{env.GITHUB_WORKSPACE}}'
-     
+      run: msbuild /m /p:Configuration=${{env.BUILD_CONFIGURATION}} ${{env.SOLUTION_FILE_PATH}}/${{env.SOLUTION_FILE}} /t:Publish
+           
     - name: Create Release
       uses: actions/create-release@latest
       env:
