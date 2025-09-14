@@ -9,10 +9,12 @@ on:
     branches: [ "master" ]
     paths-ignore:
       - 'PKHeX.slnx'
-  workflow_dispatch: 
+  workflow_dispatch:
+    paths-ignore:
+      - 'PKHeX.slnx'  
   workflow_call:
-
-permissions: write-all
+    paths-ignore:
+      - 'PKHeX.slnx'  
 
 env:
   # Path to the solution file relative to the root of the project.
