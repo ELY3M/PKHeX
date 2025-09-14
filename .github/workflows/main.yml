@@ -12,9 +12,7 @@ on:
   workflow_dispatch:
     paths-ignore:
       - 'PKHeX.slnx'  
-  workflow_call:
-    paths-ignore:
-      - 'PKHeX.slnx'  
+  workflow_call: 
 
 env:
   # Path to the solution file relative to the root of the project.
