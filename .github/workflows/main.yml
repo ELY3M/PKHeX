@@ -9,12 +9,8 @@ on:
     branches: [ "master" ]
     paths-ignore:
       - 'PKHeX.slnx'
-  workflow_dispatch:
-    paths-ignore:
-      - 'PKHeX.slnx'  
+  workflow_dispatch: 
   workflow_call:
-    paths-ignore:
-      - 'PKHeX.slnx'  
 
 permissions: write-all
 
