@@ -3,8 +3,20 @@ name: MSBuild
 on:
   push:
     branches: [ "master" ]
+    paths-ignore:
+      - 'PKHeX.slnx'    
   pull_request:
     branches: [ "master" ]
+    paths-ignore:
+      - 'PKHeX.slnx'
+  workflow_dispatch:
+    paths-ignore:
+      - 'PKHeX.slnx'  
+  workflow_call:
+    paths-ignore:
+      - 'PKHeX.slnx'  
+
+permissions: write-all
 
 env:
   # Path to the solution file relative to the root of the project.
