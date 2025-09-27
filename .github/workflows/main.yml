@@ -1,0 +1,79 @@
+name: MSBuild
+
+on:
+  push:
+    branches: [ "master" ]
+    paths-ignore:
+      - 'PKHeX.slnx'    
+  pull_request:
+    branches: [ "master" ]
+    paths-ignore:
+      - 'PKHeX.slnx'
+  workflow_dispatch:
+    paths-ignore:
+      - 'PKHeX.slnx'  
+  workflow_call: 
+
+env:
+  # Path to the solution file relative to the root of the project.
+  SOLUTION_FILE: PKHeX.sln
+  SOLUTION_FILE_PATH: ${{ github.workspace }}
+
+  # Configuration type to build.
+  # You can convert this to a build matrix if you need coverage of multiple configuration types.
+  # https://docs.github.com/actions/learn-github-actions/managing-complex-workflows#using-a-build-matrix
+  BUILD_CONFIGURATION: Release
+
+permissions: write-all
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Show Github Env Variables
+      run: | 
+       echo 'Workspace path ${{ github.workspace }} - runner.temp ${{ runner.temp }}'
+       echo 'SOLUTION_FILE_PATH: ${{env.SOLUTION_FILE_PATH}}'       
+       echo 'SOLUTION_FILE: ${{env.SOLUTION_FILE}}'    
+
+    - name: Add MSBuild to PATH
+      uses: microsoft/setup-msbuild@v1
+
+    - name: Restore NuGet packages
+      working-directory: ${{env.GITHUB_WORKSPACE}}
+      run: nuget restore ${{env.SOLUTION_FILE_PATH}}
+
+    - name: Build
+      working-directory: ${{env.GITHUB_WORKSPACE}}
+      # Add additional options to the MSBuild command line here (like platform or verbosity level).
+      # See https://docs.microsoft.com/visualstudio/msbuild/msbuild-command-line-reference
+      run: msbuild /m /p:Configuration=${{env.BUILD_CONFIGURATION}} ${{env.SOLUTION_FILE_PATH}}/${{env.SOLUTION_FILE}} /t:Publish
+           
+    - name: Create Release
+      uses: actions/create-release@latest
+      env:
+        GITHUB_TOKEN: ${{ github.token }} 
+      with:
+        draft: false
+        prerelease: false
+        release_name: ${{ steps.version.outputs.version }}
+        tag_name: ${{ github.run_number }}
+        body: ${{ github.event.head_commit.message }}
+
+    - name: Zipping up Release folder
+      run: 7z a release.zip "${{ github.workspace }}\PKHeX.WinForms\bin\Release\net9.0-windows\win-x64\publish\*"
+             
+    - name: Upload Release
+      uses: softprops/action-gh-release@v2
+      with:
+        draft: false
+        prerelease: false    
+        tag_name: ${{ github.run_number }}
+        body: ${{ github.event.head_commit.message }}
+        files: ${{ github.workspace }}\release.zip, ${{ github.workspace }}\PKHeX.Core\bin\Release\net9.0\PKHeX.Core.dll
+      env:
+        GITHUB_TOKEN: ${{ github.token }}
+        
