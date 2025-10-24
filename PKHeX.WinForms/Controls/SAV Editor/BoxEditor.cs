@@ -1,7 +1,6 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Drawing;
 using System.IO;
 using System.Windows.Forms;
 using PKHeX.Core;
@@ -26,14 +25,6 @@ public partial class BoxEditor : UserControl, ISlotViewer<PictureBox>
     public BoxEditor()
     {
         InitializeComponent();
-        Load += (_, _) =>
-        {
-            if (!DesignMode && Program.Settings.Startup.DarkMode)
-            {
-                var darkBg = Color.FromArgb(30, 30, 30);
-                BoxPokeGrid.BackColor = BackColor = darkBg;
-            }
-        };
     }
 
     internal bool InitializeGrid()
@@ -205,12 +196,7 @@ public partial class BoxEditor : UserControl, ISlotViewer<PictureBox>
     {
         Editor.Reload();
         int box = CurrentBox;
-
-        if (DesignMode || !Program.Settings.Startup.DarkMode)
-            BoxPokeGrid.SetBackground(SAV.WallpaperImage(box));
-        else
-            BoxPokeGrid.SetBackground(null!);
-
+        BoxPokeGrid.SetBackground(SAV.WallpaperImage(box));
         M?.Hover.Stop();
 
         int index = box * SAV.BoxSlotCount;

@@ -306,15 +306,9 @@ public partial class StatEditor : UserControl
     {
         var tb = MT_IVs[index];
         if (value)
-        {
             tb.BackColor = StatHyperTrained;
-            if (StatHyperTrained.GetBrightness() > 0.5f)
-                tb.ForeColor = Color.Black;
-        }
         else
-        {
             tb.ResetBackColor();
-        }
     }
 
     private void UpdateHPType(object sender, EventArgs e)
@@ -382,9 +376,7 @@ public partial class StatEditor : UserControl
     private void UpdateEVTotals()
     {
         var evtotal = Entity.EVTotal;
-        var color = GetEVTotalColor(evtotal, TB_IVTotal.BackColor);
-        TB_EVTotal.BackColor = color;
-        TB_EVTotal.ForeColor = color.GetBrightness() > 0.5f ? Color.Black : TB_EVTotal.ForeColor;
+        TB_EVTotal.BackColor = GetEVTotalColor(evtotal, TB_IVTotal.BackColor);
         TB_EVTotal.Text = evtotal.ToString();
         EVTip.SetToolTip(TB_EVTotal, $"Remaining: {510 - evtotal}");
     }
@@ -620,21 +612,11 @@ public partial class StatEditor : UserControl
         var max = ganbaru.GetMax(entity, i);
         var tb = MT_GVs[i];
         if (current > max)
-        {
             tb.BackColor = EVsInvalid;
-            if (EVsInvalid.GetBrightness() > 0.5f)
-                tb.ForeColor = Color.Black;
-        }
         else if (current == max)
-        {
             tb.BackColor = StatHyperTrained;
-            if (StatHyperTrained.GetBrightness() > 0.5f)
-                tb.ForeColor = Color.Black;
-        }
         else
-        {
             tb.ResetBackColor();
-        }
     }
 
     private void SetStatOrder(StatEditorStatOrder order)

@@ -110,7 +110,7 @@ public record struct EncounterEnumerator8(PKM Entity, EvoCriteria[] Chain, GameV
                     return true;
                 Index = 0; State = YieldState.TradeShared; goto case YieldState.TradeShared;
             case YieldState.TradeShared:
-                if (TryGetNext(Encounters8.TradeSWSHArray))
+                if (TryGetNext(Encounters8.TradeSWSH))
                     return true;
                 if (Yielded)
                     break;
@@ -131,19 +131,19 @@ public record struct EncounterEnumerator8(PKM Entity, EvoCriteria[] Chain, GameV
                 { State = YieldState.SlotSH; goto case YieldState.SlotSH; }
                 throw new ArgumentOutOfRangeException(nameof(Version));
             case YieldState.SlotSW:
-                if (TryGetNext<EncounterArea8, EncounterSlot8>(Encounters8.SlotsSW_SymbolArray))
+                if (TryGetNext<EncounterArea8, EncounterSlot8>(Encounters8.SlotsSW_Symbol))
                     return true;
                 Index = 0; State = YieldState.SlotSWHidden; goto case YieldState.SlotSWHidden;
             case YieldState.SlotSH:
-                if (TryGetNext<EncounterArea8, EncounterSlot8>(Encounters8.SlotsSH_SymbolArray))
+                if (TryGetNext<EncounterArea8, EncounterSlot8>(Encounters8.SlotsSH_Symbol))
                     return true;
                 Index = 0; State = YieldState.SlotSHHidden; goto case YieldState.SlotSHHidden;
             case YieldState.SlotSWHidden:
-                if (TryGetNext<EncounterArea8, EncounterSlot8>(Encounters8.SlotsSW_HiddenArray))
+                if (TryGetNext<EncounterArea8, EncounterSlot8>(Encounters8.SlotsSW_Hidden))
                     return true;
                 Index = 0; goto case YieldState.SlotEnd;
             case YieldState.SlotSHHidden:
-                if (TryGetNext<EncounterArea8, EncounterSlot8>(Encounters8.SlotsSH_HiddenArray))
+                if (TryGetNext<EncounterArea8, EncounterSlot8>(Encounters8.SlotsSH_Hidden))
                     return true;
                 Index = 0; goto case YieldState.SlotEnd;
             case YieldState.SlotEnd:
@@ -155,27 +155,27 @@ public record struct EncounterEnumerator8(PKM Entity, EvoCriteria[] Chain, GameV
                 goto case YieldState.NestSW;
 
             case YieldState.NestSW:
-                if (TryGetNext(Encounters8Nest.Nest_SWArray))
+                if (TryGetNext(Encounters8Nest.Nest_SW))
                     return true;
                 Index = 0; State = YieldState.NestSH; goto case YieldState.NestSH;
             case YieldState.NestSH:
-                if (TryGetNext(Encounters8Nest.Nest_SHArray))
+                if (TryGetNext(Encounters8Nest.Nest_SH))
                     return true;
                 Index = 0; State = YieldState.DistSW; goto case YieldState.DistSW;
             case YieldState.DistSW:
-                if (TryGetNext(Encounters8Nest.Dist_SWArray))
+                if (TryGetNext(Encounters8Nest.Dist_SW))
                     return true;
                 Index = 0; State = YieldState.DistSH; goto case YieldState.DistSH;
             case YieldState.DistSH:
-                if (TryGetNext(Encounters8Nest.Dist_SHArray))
+                if (TryGetNext(Encounters8Nest.Dist_SH))
                     return true;
                 Index = 0; State = YieldState.DynamaxAdv; goto case YieldState.DynamaxAdv;
             case YieldState.DynamaxAdv:
-                if (TryGetNext(Encounters8Nest.DynAdv_SWSHArray))
+                if (TryGetNext(Encounters8Nest.DynAdv_SWSH))
                     return true;
                 Index = 0; State = YieldState.Crystal; goto case YieldState.Crystal;
             case YieldState.Crystal:
-                if (TryGetNext(Encounters8Nest.Crystal_SWSHArray))
+                if (TryGetNext(Encounters8Nest.Crystal_SWSH))
                     return true;
                 Index = 0; State = YieldState.StaticVersion; goto case YieldState.StaticVersion;
 
@@ -187,15 +187,15 @@ public record struct EncounterEnumerator8(PKM Entity, EvoCriteria[] Chain, GameV
                 goto case YieldState.Fallback; // already checked everything else
 
             case YieldState.StaticVersionSW:
-                if (TryGetNext(Encounters8.StaticSWArray))
+                if (TryGetNext(Encounters8.StaticSW))
                     return true;
                 Index = 0; State = YieldState.StaticShared; goto case YieldState.StaticShared;
             case YieldState.StaticVersionSH:
-                if (TryGetNext(Encounters8.StaticSHArray))
+                if (TryGetNext(Encounters8.StaticSH))
                     return true;
                 Index = 0; State = YieldState.StaticShared; goto case YieldState.StaticShared;
             case YieldState.StaticShared:
-                if (TryGetNext(Encounters8.StaticSWSHArray))
+                if (TryGetNext(Encounters8.StaticSWSH))
                     return true;
                 if (mustBeSlot)
                     goto case YieldState.Fallback; // already checked everything else
