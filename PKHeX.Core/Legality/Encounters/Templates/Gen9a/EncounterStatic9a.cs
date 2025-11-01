@@ -78,13 +78,14 @@ public sealed record EncounterStatic9a(ushort Species, byte Form, byte Level, by
 
     private void SetPINGA(PA9 pk, EncounterCriteria criteria, PersonalInfo9ZA pi)
     {
+        var generate = criteria;
         if (IVs.IsSpecified || Correlation is LumioseCorrelation.ReApplyIVs)
-            criteria = criteria.WithoutIVs();
+            generate = criteria.WithoutIVs();
 
         var param = GetParams(pi);
         ulong init = Util.Rand.Rand64();
-        var success = this.TryApply64(pk, init, param, criteria);
-        if (!success && !this.TryApply64(pk, init, param, criteria.WithoutIVs()))
+        var success = this.TryApply64(pk, init, param, generate);
+        if (!success && !this.TryApply64(pk, init, param, generate.WithoutIVs()))
             this.TryApply64(pk, init, param, EncounterCriteria.Unrestricted);
 
         if (IVs.IsSpecified)
@@ -195,7 +196,17 @@ public sealed record EncounterStatic9a(ushort Species, byte Form, byte Level, by
         return SeedCorrelationResult.Invalid;
     }
 
-    public LumioseCorrelation Correlation => IsAlpha ? LumioseCorrelation.PreApplyIVs : LumioseCorrelation.Normal;
+    public LumioseCorrelation Correlation
+    {
+        get
+        {
+            if (IsAlpha)
+                return LumioseCorrelation.PreApplyIVs;
+            if (FlawlessIVCount != 0)
+                return LumioseCorrelation.ReApplyIVs;
+            return LumioseCorrelation.Normal;
+        }
+    }
 
     public GenerateParam9a GetParams(PersonalInfo9ZA pi)
     {
