@@ -2,21 +2,15 @@ name: MSBuild
 
 on:
   push:
-    branches: [ "master" ]
-    paths-ignore:
-      - 'PKHeX.slnx'    
+    branches: [ "master" ]  
   pull_request:
     branches: [ "master" ]
-    paths-ignore:
-      - 'PKHeX.slnx'
   workflow_dispatch:
-    paths-ignore:
-      - 'PKHeX.slnx'  
   workflow_call: 
 
 env:
   # Path to the solution file relative to the root of the project.
-  SOLUTION_FILE: PKHeX.sln
+  SOLUTION_FILE: PKHeX.slnx
   SOLUTION_FILE_PATH: ${{ github.workspace }}
 
   # Configuration type to build.
