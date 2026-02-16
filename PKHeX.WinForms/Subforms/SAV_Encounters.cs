@@ -424,7 +424,7 @@ public partial class SAV_Encounters : Form
     {
         var settings = new SearchSettings
         {
-            Format = SAV.Generation, // 0->(n-1) => 1->n
+            Context = SAV.Context,
             Generation = SAV.Generation,
 
             Species = GetU16(CB_Species),
@@ -471,7 +471,7 @@ public partial class SAV_Encounters : Form
                 return;
             }
 
-            var results = await Task.Run(() => search.ToList(), token).ConfigureAwait(true);
+            var results = await Task.Run(search.ToList, token).ConfigureAwait(true);
             if (token.IsCancellationRequested)
             {
                 EncounterMovesetGenerator.ResetFilters();
