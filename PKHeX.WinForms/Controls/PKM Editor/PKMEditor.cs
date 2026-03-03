@@ -166,7 +166,8 @@ public sealed partial class PKMEditor : UserControl, IMainEditor
         set => field = Stats.HaX = value;
     }
 
-    private byte[] LastData = [];
+    private byte[] LastData { get; set; } = [];
+    public void NotifyWasExported(PKM pk) => LastData = pk.Data.ToArray();
 
     public PKM Data => Entity;
     public PKM Entity { get; private set; } = null!;
@@ -233,7 +234,6 @@ public sealed partial class PKMEditor : UserControl, IMainEditor
         }
 
         var pk = GetPKMfromFields();
-        LastData = pk.Data.ToArray();
         return pk.Clone();
     }
 
@@ -355,7 +355,7 @@ public sealed partial class PKMEditor : UserControl, IMainEditor
         SetMarkings();
         UpdateLegality();
         UpdateSprite();
-        LastData = PreparePKM().Data.ToArray();
+        NotifyWasExported(PreparePKM());
         RefreshFontWarningButton();
     }
 
@@ -1324,6 +1324,9 @@ public sealed partial class PKMEditor : UserControl, IMainEditor
         {
             ValidateChildren(); // hacky validation forcing
         }
+
+        CB_MetLocation.SelectionLength = 0;
+        CB_EggLocation.SelectionLength = 0;
     }
 
     private void UpdateExtraByteValue(object sender, EventArgs e)
@@ -1962,8 +1965,9 @@ public sealed partial class PKMEditor : UserControl, IMainEditor
         if (ModifierKeys == Keys.Shift)
         {
             m.ClearMoveShopFlags();
-            if (Legality.EncounterMatch is IMasteryInitialMoveShop8 enc)
-                enc.SetInitialMastery(Entity);
+            var enc = Legality.EncounterMatch;
+            if (enc is IMasteryInitialMoveShop8 shop)
+                shop.SetInitialMastery(Entity, enc);
             m.SetMoveShopFlags(Entity);
             UpdateLegality();
             return;

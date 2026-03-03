@@ -256,7 +256,7 @@ public partial class SAV_Encounters : Form
         }
 
         var criteria = _criteriaValue;
-        if (!isInChain)
+        if (!isInChain || EntityGender.IsSingleGender(enc.Species))
             criteria = criteria with { Gender = Gender.Random }; // Genderless tabs and a gendered enc -> let's play safe.
         return criteria;
     }
@@ -351,8 +351,8 @@ public partial class SAV_Encounters : Form
         if (batchText.Length != 0 && !StringInstructionSet.HasEmptyLine(batchText))
         {
             var filters = StringInstruction.GetFilters(batchText);
-            BatchEditing.ScreenStrings(filters);
-            results = results.Where(enc => BatchEditing.IsFilterMatch(filters, enc)); // Compare across all filters
+            EntityBatchEditor.ScreenStrings(filters);
+            results = results.Where(enc => BatchEditingUtil.IsFilterMatch(filters, enc)); // Compare across all filters
         }
 
         return results;

@@ -72,6 +72,13 @@ public partial class SAV_FolderList : Form
         }
     }
 
+    private void OnKeyDown(object sender, KeyEventArgs e)
+    {
+        // Quick close with Ctrl+W
+        if (e.KeyCode == Keys.W && ModifierKeys == Keys.Control)
+            Close();
+    }
+
     private static List<INamedFolderPath> GetPathList(IReadOnlyList<string> drives, string backupPath)
     {
         List<INamedFolderPath> locs =
@@ -216,11 +223,11 @@ public partial class SAV_FolderList : Form
 
     private SavePreview? GetSaveFile(DataGridView dgData)
     {
-        var c = dgData.SelectedCells;
+        var c = dgData.SelectedRows;
         if (c.Count != 1)
             return null;
 
-        var item = c[0].RowIndex;
+        var item = c[0].Index;
         var parent = dgData == dgDataRecent ? Recent : Backup;
         return parent[item];
     }

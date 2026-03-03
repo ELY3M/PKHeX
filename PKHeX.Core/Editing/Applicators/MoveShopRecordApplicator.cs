@@ -107,21 +107,29 @@ public static class MoveShopRecordApplicator
             if (shop.GetMasteredRecordFlag(index))
                 return;
 
-            if (learn.TryGetLevelLearnMove(move, out var learnLevel) && level < learnLevel) // Can't learn it yet; must purchase.
+            if (learn.TryGetLevelLearnMove(move, out var learnLevel))
             {
-                shop.SetPurchasedRecordFlag(index, true);
-                shop.SetMasteredRecordFlag(index, true);
-                return;
+                if (level < learnLevel) // Can't learn it yet; must purchase.
+                {
+                    shop.SetPurchasedRecordFlag(index, true);
+                    shop.SetMasteredRecordFlag(index, true);
+                    return;
+                }
+                if (mastery.TryGetLevelLearnMove(move, out var masterLevel) && level < masterLevel) // Can't master it yet; must Seed of Mastery
+                    shop.SetMasteredRecordFlag(index, true);
+                // Otherwise, is innately mastered, no need to force the flag.
             }
-
-            if (mastery.TryGetLevelLearnMove(move, out var masterLevel) && level < masterLevel) // Can't master it yet; must Seed of Mastery
-                shop.SetMasteredRecordFlag(index, true);
+            else // Can't learn it without purchasing.
+            {
+                if (shop.GetPurchasedRecordFlag(index))
+                    shop.SetMasteredRecordFlag(index, true);
+            }
         }
 
         /// <summary>
         /// Sets the "mastered" move shop flag for the encounter.
         /// </summary>
-        public void SetEncounterMasteryFlags(ReadOnlySpan<ushort> moves, Learnset mastery, byte level)
+        public void SetEncounterMasteryFlags(ReadOnlySpan<ushort> moves, Learnset mastery, byte metLevel, ushort alphaMove)
         {
             var permit = shop.Permit;
             var possible = permit.RecordPermitIndexes;
@@ -137,7 +145,14 @@ public static class MoveShopRecordApplicator
                 // and it is high enough level to master it, the game will automatically
                 // give it the "Mastered" flag but not the "Purchased" flag
                 // For moves that are not in the learnset, set as mastered.
-                if (!mastery.TryGetLevelLearnMove(move, out var masteryLevel) || level >= masteryLevel)
+                if (!mastery.TryGetLevelLearnMove(move, out var masteryLevel) || metLevel >= masteryLevel)
+                    shop.SetMasteredRecordFlag(index, true);
+            }
+
+            if (alphaMove != 0)
+            {
+                var index = possible.IndexOf(alphaMove);
+                if (index != -1)
                     shop.SetMasteredRecordFlag(index, true);
             }
         }
@@ -145,14 +160,28 @@ public static class MoveShopRecordApplicator
         /// <summary>
         /// Sets the "purchased" move shop flag for all possible moves.
         /// </summary>
-        public void SetPurchasedFlagsAll()
+        public void SetPurchasedFlagsAll(PKM pk)
         {
+            var (learn, _) = LearnSource8LA.GetLearnsetAndMastery(pk.Species, pk.Form);
+            var level = pk.CurrentLevel;
+            var alpha = pk is PA8 pa ? pa.AlphaMove : (ushort)0;
+
             var permit = shop.Permit;
             for (int index = 0; index < permit.RecordCountUsed; index++)
             {
                 var allowed = permit.IsRecordPermitted(index);
                 if (!allowed)
                     continue;
+
+                // If it can learn it naturally, it can't be purchased anymore.
+                var move = permit.RecordPermitIndexes[index];
+                if (learn.TryGetLevelLearnMove(move, out var learnLevel) && learnLevel <= level)
+                    continue;
+
+                // Skip purchasing alpha moves, even though it was possible on early versions of the game.
+                if (move == alpha)
+                    continue;
+
                 shop.SetPurchasedRecordFlag(index, true);
             }
         }

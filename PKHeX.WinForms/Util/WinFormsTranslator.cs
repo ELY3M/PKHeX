@@ -223,15 +223,9 @@ public static class WinFormsTranslator
         else if (z is ButtonBase b)
         {
             b.FlatStyle = FlatStyle.Popup;
-            if (b.Image is Bitmap bmp)
+            if (b is Button { Image: Bitmap bmp })
                 b.Image = WinFormsUtil.BlackToWhite(bmp);
         }
-    }
-
-    public static void ReformatDark(PictureBox pb)
-    {
-        if (pb.Image is Bitmap bmp)
-            pb.Image = WinFormsUtil.BlackToWhite(bmp);
     }
 
     private static IEnumerable<T> GetChildrenOfType<T>(this Control control) where T : class
