@@ -67,7 +67,7 @@ jobs:
         prerelease: false    
         tag_name: ${{ github.run_number }}
         body: ${{ github.event.head_commit.message }}
-        files: ${{ github.workspace }}\release.zip, ${{ github.workspace }}\PKHeX.Core\bin\Release\net10.0\PKHeX.Core.dll
+        files: ${{ github.workspace }}\PKHeX.Core\bin\Release\net10.0\PKHeX.exe, ${{ github.workspace }}\release.zip, ${{ github.workspace }}\PKHeX.Core\bin\Release\net10.0\PKHeX.Core.dll
       env:
         GITHUB_TOKEN: ${{ github.token }}
         
