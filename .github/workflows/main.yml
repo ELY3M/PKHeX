@@ -57,8 +57,8 @@ jobs:
         tag_name: ${{ github.run_number }}
         body: ${{ github.event.head_commit.message }}
 
-    - name: Zipping up Release folder
-      run: 7z a release.zip "${{ github.workspace }}\PKHeX.WinForms\bin\Release\net10.0-windows\win-x64\publish\*"
+    # - name: Zipping up Release folder
+      # run: 7z a release.zip "${{ github.workspace }}\PKHeX.WinForms\bin\Release\net10.0-windows\win-x64\publish\*"
              
     - name: Upload Release
       uses: softprops/action-gh-release@v2
@@ -67,7 +67,8 @@ jobs:
         prerelease: false    
         tag_name: ${{ github.run_number }}
         body: ${{ github.event.head_commit.message }}
-        files: ${{ github.workspace }}\PKHeX.WinForms\bin\Release\net10.0-windows\win-x64\publish\PKHeX.exe, ${{ github.workspace }}\release.zip, ${{ github.workspace }}\PKHeX.Core\bin\Release\net10.0\PKHeX.Core.dll
+         ###files: ${{ github.workspace }}\PKHeX.WinForms\bin\Release\net10.0-windows\win-x64\publish\PKHeX.exe, ${{ github.workspace }}\release.zip, ${{ github.workspace }}\PKHeX.Core\bin\Release\net10.0\PKHeX.Core.dll
+        files: ${{ github.workspace }}\PKHeX.WinForms\bin\Release\net10.0-windows\win-x64\publish\PKHeX.exe
       env:
         GITHUB_TOKEN: ${{ github.token }}
         
