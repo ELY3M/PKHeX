@@ -1,4 +1,4 @@
-name: MSBuild
+name: Build
 
 on:
   push:
@@ -8,16 +8,6 @@ on:
   workflow_dispatch:
   workflow_call:
 
-env:
-  # Path to the solution file relative to the root of the project.
-  SOLUTION_FILE: PKHeX.slnx
-  SOLUTION_FILE_PATH: ${{ github.workspace }}
-
-  # Configuration type to build.
-  # You can convert this to a build matrix if you need coverage of multiple configuration types.
-  # https://docs.github.com/actions/learn-github-actions/managing-complex-workflows#using-a-build-matrix
-  BUILD_CONFIGURATION: Release
-
 permissions: write-all
 
 jobs:
@@ -25,55 +15,32 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v7
+      - uses: actions/checkout@v7
        
-    # - name: Add MSBuild to PATH
-      # uses: microsoft/setup-msbuild@v2
-      
-    - name: Setup .NET
-      uses: actions/setup-dotnet@v4
-      with:
-        dotnet-version: '10.0.x'  
+      - name: Setup .NET 10
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'  
 
-    # - name: Restore NuGet packages
-      # working-directory: ${{env.GITHUB_WORKSPACE}}
-      # run: nuget restore ${{env.SOLUTION_FILE_PATH}}
-
-    # - name: Build
-      # working-directory: ${{env.GITHUB_WORKSPACE}}
-      # # Add additional options to the MSBuild command line here (like platform or verbosity level).
-      # # See https://docs.microsoft.com/visualstudio/msbuild/msbuild-command-line-reference
-      # run: msbuild /m /p:Configuration=${{env.BUILD_CONFIGURATION}} ${{env.SOLUTION_FILE_PATH}}/${{env.SOLUTION_FILE}} /t:Publish
-
-    # Restores and publishes the Windows .exe directly from Linux
-    - name: Publish Windows EXE
-      run: |
-        dotnet publish ${{ env.SOLUTION_FILE_PATH }} -c ${{ env.BUILD_CONFIGURATION }} -r win-x64 -o ./publish
-           
-    - name: Create Release
-      uses: actions/create-release@latest
-      env:
-        GITHUB_TOKEN: ${{ github.token }} 
-      with:
-        draft: false
-        prerelease: false
-        release_name: ${{ steps.version.outputs.version }}
-        tag_name: ${{ github.run_number }}
-        body: ${{ github.event.head_commit.message }}
-
-    # - name: Zipping up Release folder
-      # run: 7z a release.zip "${{ github.workspace }}\PKHeX.WinForms\bin\Release\net10.0-windows\win-x64\publish\*"
+      # Restores and publishes the Windows .exe directly from Linux
+      - name: Build Windows EXE
+        run: |
+          dotnet publish . -c Release -r win-x64 -o ./publish
              
-    - name: Upload Release
-      uses: softprops/action-gh-release@v2
-      with:
-        draft: false
-        prerelease: false    
-        tag_name: ${{ github.run_number }}
-        body: ${{ github.event.head_commit.message }}
-         ###files: ${{ github.workspace }}\PKHeX.WinForms\bin\Release\net10.0-windows\win-x64\publish\PKHeX.exe, ${{ github.workspace }}\release.zip, ${{ github.workspace }}\PKHeX.Core\bin\Release\net10.0\PKHeX.Core.dll
-         ###files: ${{ github.workspace }}\PKHeX.WinForms\bin\Release\net10.0-windows\win-x64\publish\PKHeX.exe
-        files: ${{ github.workspace }}/publish/PKHeX.exe
-      env:
-        GITHUB_TOKEN: ${{ github.token }}
-        
+      - name: get date/date 
+        env:
+          TZ: "America/Chicago"
+        run: | 
+          echo "NOW=$(date +'%m-%d-%Y-%I.%M.%S.%p')" >> $GITHUB_ENV
+               
+      - name: Upload Release
+        uses: softprops/action-gh-release@v2
+        with:
+          draft: false
+          prerelease: false    
+          tag_name: ${{ env.NOW }}
+          body: ${{ github.event.head_commit.message }}
+          files: ${{ github.workspace }}/publish/PKHeX.exe
+          name: "Release ${{ env.NOW }}"
+   
+            
